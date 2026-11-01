@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=RP9 Manager
+Comment=Beheer, bewerk, maak en start Cloanto .rp9-bestanden
+Exec=rp9-manager
+Icon=applications-games
+Categories=Game;Emulator;
+Terminal=false

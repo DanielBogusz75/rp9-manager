@@ -1,0 +1,16 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.build-venv
+release/
+*.spec
+
+# Auteursrechtelijk beschermde voorbeeldgames: niet publiceren
+rp9-examples/
