@@ -7,8 +7,10 @@ import os
 from pathlib import Path
 
 from .archive import RP9Archive, RP9Entry
+from .i18n import detect_language, set_language
 from .launcher import EmulatorLauncher
 from .manifest import Manifest, Platform
+from .media import MediaChanges
 
 CONFIG_PATH = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "rp9-manager" / "config.json"
 
@@ -20,7 +22,9 @@ class RP9Manager:
         """Laad de configuratie en stel map en launcher in."""
         cfg = self._load_config()
         self.library_dir = library_dir or Path(cfg.get("library_dir", Path.home() / "Games" / "rp9"))
-        self.launcher = launcher or EmulatorLauncher(cfg.get("amiberry", "amiberry"), cfg.get("vice", "x64sc"))
+        self.language = cfg.get("language") or detect_language()
+        set_language(self.language)
+        self.launcher = launcher or EmulatorLauncher(cfg.get("amiberry", "amiberry"), cfg.get("vice", "vice"))
 
     @staticmethod
     def _load_config() -> dict[str, str]:
@@ -35,11 +39,17 @@ class RP9Manager:
         CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
         CONFIG_PATH.write_text(
             json.dumps(
-                {"library_dir": str(self.library_dir), "amiberry": self.launcher.amiberry, "vice": self.launcher.vice},
+                {"library_dir": str(self.library_dir), "amiberry": self.launcher.amiberry, "vice": self.launcher.vice, "language": self.language},
                 indent=2,
             ),
             encoding="utf-8",
         )
+
+    def set_language(self, code: str) -> None:
+        """Wissel de interfacetaal (``nl`` of ``en``) en bewaar de keuze."""
+        self.language = code
+        set_language(code)
+        self.save_config()
 
     def scan(self) -> list[RP9Entry]:
         """Scan de bibliotheekmap (recursief) en geef entries gesorteerd op titel."""
@@ -59,19 +69,35 @@ class RP9Manager:
                 (e.title, e.manifest.publisher, e.manifest.genre, e.manifest.year, e.path.name)).lower())
         ]
 
+    @staticmethod
+    def inspect_folder(source_dir: Path) -> tuple[list[str], list[str], list[str]]:
+        """Geef (disk-images, afbeeldingen, documenten) in een bronmap, als namen in het toekomstige archief."""
+        return RP9Archive.folder_contents(source_dir)
+
     def preview(self, entry: RP9Entry) -> bytes | None:
         """Geef de bytes van de preview-afbeelding, of None."""
         return RP9Archive(entry.path).read(entry.preview_name) if entry.preview_name else None
 
-    def update_manifest(self, entry: RP9Entry, manifest: Manifest) -> RP9Entry:
-        """Sla een gewijzigd manifest op en geef de ververste entry terug."""
+    def update_manifest(
+        self, entry: RP9Entry, manifest: Manifest, changes: MediaChanges | None = None
+    ) -> RP9Entry:
+        """Sla een gewijzigd manifest (en media-wijzigingen) op en geef de ververste entry terug."""
         archive = RP9Archive(entry.path)
-        archive.write_manifest(manifest)
+        archive.write_manifest(manifest, changes)
         return archive.summarize()
 
-    def create(self, source_dir: Path, output: Path, manifest: Manifest) -> RP9Entry:
-        """Maak een nieuw .rp9 uit een map."""
-        return RP9Archive.create(source_dir, output, manifest).summarize()
+    def create(
+        self, source_dir: Path, output: Path, manifest: Manifest, changes: MediaChanges | None = None
+    ) -> RP9Entry:
+        """Maak een nieuw .rp9 uit een map; ``changes`` voegt extra media toe of laat bronbestanden weg."""
+        archive = RP9Archive.create(source_dir, output, manifest)
+        if changes:
+            try:
+                archive.write_manifest(manifest, changes)
+            except BaseException:
+                output.unlink(missing_ok=True)
+                raise
+        return archive.summarize()
 
     def launch(self, entry: RP9Entry) -> None:
         """Start de emulator voor ``entry``."""

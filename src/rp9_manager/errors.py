@@ -13,6 +13,10 @@ class ManifestError(RP9Error):
     """De manifest.xml ontbreekt of is ongeldig."""
 
 
+class MediaError(RP9Error):
+    """Een media-bestand (afbeelding, document of disk-image) kan niet worden toegevoegd of verwijderd."""
+
+
 class EmulatorNotFoundError(RP9Error):
     """De benodigde emulator is niet geïnstalleerd of niet uitvoerbaar."""
 
