@@ -1,8 +1,10 @@
 [project]
 name = "rp9-manager"
 version = "0.1.0"
-description = "Add your description here"
+description = "Manager, creator en launcher voor Cloanto .rp9-bestanden (Amiga/C64)"
 readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 authors = [
     { name = "Daniel Bogusz", email = "daniel.1975.box@gmail.com" }
 ]

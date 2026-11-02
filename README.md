@@ -79,3 +79,6 @@ Dit project is nog jong en hulp is zeer welkom! Zie [CONTRIBUTING.md](CONTRIBUTI
 - **Packaging**: AppImage, Flatpak, `.deb`.
 
 Open gerust een issue of pull request.
+
+## Licentie
+Vrije software onder de [GNU GPL v3 of later](LICENSE): u mag het gebruiken, bestuderen, aanpassen en delen; afgeleide werken blijven onder dezelfde licentie. RP9 Manager is niet verbonden aan Cloanto; "Amiga Forever" en "C64 Forever" zijn merken van Cloanto.
